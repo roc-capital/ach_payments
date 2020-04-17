@@ -11,7 +11,7 @@ today = datetime.date(current.year, current.month, current.day)
 prior = datetime.date((current-relativedelta(months=1)).year,(current - relativedelta(months=1)).month, 1)
 last_day = datetime.date(2020,current.month,1) - relativedelta(days=1)
 first_day = datetime.date(2020,current.month, 1)
-host = 'anqadb.citbtxda2m9k.us-east-1.rds.amazonaws.com'
+host = ''
 dates = list(range(1,32))
 
 def tds_sql_extract(last_day):
@@ -23,7 +23,7 @@ def tds_sql_extract(last_day):
         #Connect to the roc_portal_db to extract information from the loans table
 
         try:
-            conn = psycopg2.connect(host = host, database = 'roc_portal_db', user = 'portal_ro', password = 't0tallywelc0me')
+            conn = psycopg2.connect(host = host, database = 'roc_portal_db', user = '', password = '')
         except psycopg2.DatabaseError:
             print('failed to connect to database')
             exit (1)
@@ -56,7 +56,7 @@ def tds_sql_extract(last_day):
     else:
         #Create a connection to the slifdb
         try:
-            conn_slif = psycopg2.connect(host = host, database = 'slifdb', user = 'portal_ro', password = 't0tallywelc0me')
+            conn_slif = psycopg2.connect(host = host, database = 'slifdb', user = '', password = '')
         except psycopg2.DatabaseError:
             print('failed to connect to database')
             exit (1)
@@ -108,7 +108,7 @@ def loans_sql_extract():
 #Connect to the roc_portal_db to extract information from the loans table
 
     try:
-        conn = psycopg2.connect(host = host, database = 'roc_portal_db', user = 'portal_ro', password = 't0tallywelc0me')
+        conn = psycopg2.connect(host = host, database = 'roc_portal_db', user = '', password = '')
     except psycopg2.DatabaseError:
         print('failed to connect to database')
         exit (1)
