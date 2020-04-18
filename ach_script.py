@@ -71,8 +71,8 @@ def tds_sql_extract(last_day):
         result_snapshot = cursor_slif.fetchall()
 
         df_snapshot = pd.DataFrame.from_records(result_snapshot, columns = ['SLS Snapshot ID', 'Date', 'Created'])
-        df_snapshot = df_snapshot[((df_snapshot['Date']>last_day) & 
-                           (df_snapshot['Date']<last_day+datetime.timedelta(days=1)))]
+        df_snapshot = df_snapshot[((df_snapshot['Date']>pd.Timestamp(last_day)) & 
+                           (df_snapshot['Date']<pd.Timestamp(last_day+datetime.timedelta(days=1))))]
 
         #Extract the snapshot ID of the day we are looking for
         sls_snapshot_id = df_snapshot.iloc[0,0].astype(int).item()
@@ -173,27 +173,27 @@ def ach_payment(df, df_tds, date, holding_entity = None, today= False):
     combined_df['Debit Amount'] = combined_df['Debit Amount'].astype('float64')
 
     #Select just the loans that have not paid off yet at the beginning of the month
-    combined_df = combined_df[((combined_df['Loan Status ID']==3) | (combined_df['Payoff Date']>date))]
+    combined_df = combined_df[((combined_df['Loan Status ID']==3) | (combined_df['Payoff Date']>pd.Timestamp(date)))]
 
     #Remove the loans that just closed and do not owe a payment yet
-    combined_df = combined_df[combined_df['Closing Date'] < date-relativedelta(months=1)]
+    combined_df = combined_df[combined_df['Closing Date'] < pd.Timestamp(date-relativedelta(months=1))]
 
     #All the loans that are late
-    combined_late = combined_df[combined_df['Next Due Date']< date-relativedelta(months=1)]
+    combined_late = combined_df[combined_df['Next Due Date']< pd.Timestamp(date-relativedelta(months=1))]
 
     #These are all of the recurring ACH payment accounts
     ach = combined_df[((combined_df['ACH Service Status']==1) & (combined_df['ACH Frequency']==1) & 
-                   (combined_df['Stop Date']>=date+relativedelta(months=1)))]
+                   (combined_df['Stop Date']>= pd.Timestamp(date+relativedelta(months=1))))]
 
     #ACH accounts broken out into current and late
-    ach_late = ach[ach['Next Due Date']<date - relativedelta(months=1)]
-    current = ach[ach['Next Due Date']>= date - relativedelta(months=1)]
+    ach_late = ach[ach['Next Due Date']<pd.Timestamp(date - relativedelta(months=1))]
+    current = ach[ach['Next Due Date']>= pd.Timestamp(date - relativedelta(months=1))]
 
     #When payments for March will come in on ACH accounts, and make sure that IR accounts are taken out. 
     if today:
-        month_ach = current[((current['Next Due Date'] < date + relativedelta(months=1)) &(current['Next Debit Date']<date+relativedelta(months=2)))]
+        month_ach = current[((current['Next Due Date'] < pd.Timestamp(date + relativedelta(months=1))) &(current['Next Debit Date']<pd.Timestamp(date+relativedelta(months=2))))]
     else:
-        month_ach = current[((current['Next Due Date'] <= date + relativedelta(months=1)) &(current['Next Debit Date']<date+relativedelta(months=2)))]
+        month_ach = current[((current['Next Due Date'] <= pd.Timestamp(date + relativedelta(months=1))) &(current['Next Debit Date']<pd.Timestamp(date+relativedelta(months=2))))]
     #Filter by Holding Entity
     
     if holding_entity == None:
