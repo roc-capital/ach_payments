@@ -250,10 +250,11 @@ plt.title('ACH Scheduled Payments by Day')
 plt.savefig('Scheduled Payments by Day.png')
 
 
-for i in range(today.day, len(current_values)):
+#With seasoning curves as they are this is redundant
+"""for i in range(today.day, len(current_values)):
     current_values[i]=0
 april_diff = np.array(current_values)
 
 plt.plot(dates, april_diff, label='Differences')
 plt.title('Late Payments by Day')
-plt.savefig('Late Payments by Day')
+plt.savefig('Late Payments by Day')"""
