@@ -172,6 +172,17 @@ def ach_payment(df, df_tds, date, holding_entity = None, today= False):
     combined_df['Loan ID'] = combined_df['Loan ID'].astype('int64')
     combined_df['Debit Amount'] = combined_df['Debit Amount'].astype('float64')
 
+
+    dates_denom = []
+
+    #Creating Denominator for Seasoning of the ACH Payments over the month
+    x=0
+    while pd.Timestamp(date + relativedelta(days=x))< pd.Timestamp(date + relativedelta(months=1)):
+        placeholder_day = pd.Timestamp(date + relativedelta(days=x))
+        denom_df = combined_df[((combined_df['Loan Status ID']==3) | (combined_df['Payoff Date']>pd.Timestamp(placeholder_day)))]
+        dates_denom.append(denom_df['Debit Amount'].sum())
+        x+=1
+
     #Select just the loans that have not paid off yet at the beginning of the month
     combined_df = combined_df[((combined_df['Loan Status ID']==3) | (combined_df['Payoff Date']>pd.Timestamp(date)))]
 
@@ -205,8 +216,17 @@ def ach_payment(df, df_tds, date, holding_entity = None, today= False):
     e = month_ach.groupby(['ACH Debit Due Day']).sum()
     dates = list(range(1,32))
     output_values = y_generator(e.index, e['Debit Amount'], dates)
+
+    #Create a cumulative sum of payments instead
+    output_values = pd.Series(output_values).cumsum()
     
-    return output_values
+    for i in range(len(dates_denom)):
+        dates_denom[i] = output_values[i]/dates_denom[i]
+    
+    if len(dates_denom)<31:
+        dates_denom.append(dates_denom[-1])
+
+    return dates_denom
 
 
 df_tds = tds_sql_extract(last_day)
