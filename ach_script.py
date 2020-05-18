@@ -8,7 +8,9 @@ from dateutil.relativedelta import relativedelta
 
 current = datetime.datetime.now()
 today = datetime.date(current.year, current.month, current.day)
-prior = datetime.date((current-relativedelta(months=1)).year,(current - relativedelta(months=1)).month, 1)
+prior = {}
+for i in range(1,7):
+    prior['prior'+str(i)] = datetime.date((current-relativedelta(months=i)).year,(current - relativedelta(months=i)).month, 1)
 last_day = datetime.date(2020,current.month,1) - relativedelta(days=1)
 first_day = datetime.date(2020,current.month, 1)
 host = ''
@@ -223,28 +225,31 @@ def ach_payment(df, df_tds, date, holding_entity = None, today= False):
     for i in range(len(dates_denom)):
         dates_denom[i] = output_values[i]/dates_denom[i]
     
-    if len(dates_denom)<31:
+    while len(dates_denom)<31:
         dates_denom.append(dates_denom[-1])
 
     return dates_denom
 
 
-df_tds = tds_sql_extract(last_day)
 df = loans_sql_extract()
+values = {}
 
-
-prior_values  = ach_payment(df, df_tds, prior)
-
+for i in range(1,7):
+    last_day = prior['prior'+str(i)] + relativedelta(months=1) - relativedelta(days=1)
+    df_tds = tds_sql_extract(last_day)
+    values['prior'+str(i)] = ach_payment(df, df_tds, prior['prior'+str(i)])
+    
 df_tds = tds_sql_extract(first_day)
-month_values = ach_payment(df, df_tds, first_day)
-
-df_tds = tds_sql_extract(today)
-current_values = ach_payment(df, df_tds, first_day, today=True)
+may_values = ach_payment(df, df_tds, first_day)
 
 
-plt.plot(dates, prior_values, label='Prior Month')
-plt.plot(dates, month_values, label='Start of Month')
-plt.plot(dates, current_values, label='Current')
+dates = list(range(1,32))
+for i in range(1,7):
+    label_month = (current - relativedelta(months=i)).month
+    plt.plot(dates, values['prior'+str(i)], label=calendar.month_abbr[label_month])
+
+plt.plot(dates, may_values, label = calendar.month_abbr[today.month], linewidth = 3.5)
+
 plt.legend()
 plt.title('ACH Scheduled Payments by Day')
 plt.savefig('Scheduled Payments by Day.png')
