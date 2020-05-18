@@ -223,7 +223,7 @@ def ach_payment(df, df_tds, date, holding_entity = None, today= False):
     output_values = pd.Series(output_values).cumsum()
     
     for i in range(len(dates_denom)):
-        dates_denom[i] = output_values[i]/dates_denom[i]
+        dates_denom[i] = 1- (output_values[i]/dates_denom[i])
     
     while len(dates_denom)<31:
         dates_denom.append(dates_denom[-1])
